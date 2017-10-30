@@ -1,0 +1,287 @@
+<!DOCTYPE HTML>
+<!--
+    Spatial by TEMPLATED
+    templated.co @templatedco
+    Released for free under the Creative Commons Attribution 3.0 license (templated.co/license)
+-->
+<html>
+        <head>
+        <title>An efficient soft-margin kernel SVM implementation in Python | Emile Mathieu - Blog</title>
+        <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+        <meta name="description" content="Works" />
+        <meta name="keywords" content="works,Emile Mathieu,Mathieu emile,emilemathieu" />
+        <link rel="shortcut icon" href="Images/enpc_favicon.ico" type="image/vnd.microsoft.icon" />
+        <!--[if lte IE 8]><script src="js/html5shiv.js"></script><![endif]-->
+        <!--<script src="js/jquery.min.js"></script>
+        <script src="js/skel.min.js"></script>
+        <script src="js/skel-layers.min.js"></script>
+        <script src="js/init.js"></script>
+        -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/skel/2.2.1/skel.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/skel-layers/2.0.2/skel-layers.min.js"></script>
+        <script src="js/init.js"></script>
+        <script>
+          (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+          (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+          })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+          ga('create', 'UA-90612705-1', 'auto');
+          ga('send', 'pageview');
+        </script>
+        
+        <noscript>
+            <!-- <link rel="stylesheet" href="css/skel.css" /> -->
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/skel/2.2.1/skel.css" />
+            <link rel="stylesheet" href="css/style.css" />
+            <link rel="stylesheet" href="css/style-xlarge.css" />
+            <link rel="stylesheet" href="https://assets-cdn.github.com/assets/gist-embed-9f0a4ad9c85ca776e669003688baa9d55f9db315562ce4d231d37dab2714c70a.css">
+        </noscript>
+        <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <!-- For offline development: -->
+        <!--<script type="text/javascript" src="./MathJax-master/MathJax.js?config=TeX-AMS_HTML-full"></script>-->
+        <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({
+          tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]},
+          TeX: { equationNumbers: { autoNumber: "AMS" } }
+        });
+        </script>
+        <style type="text/css">
+            canvas { border: 1px solid white; }
+        </style>
+        <meta property="og:title" content="An efficient soft-margin kernel SVM implementation in Python | Emile Mathieu - Blog" />
+        <meta property="og:type" content="website" />
+        <!-- <meta property="og:image" content="" /> -->
+        <meta property="og:description" content="A simple tutorial to understand and build a soft-margin kernel SVM implementation in Python." />
+    </head>
+    <body class="landing">
+
+          <!-- Header -->
+            <header id="header" class="alt">
+                <nav id="share" style="left: 1.25em;">
+                    <ul class="icons">
+                        <li style="margin-left:1em"><a href="https://github.com/emilemathieu" target="_blank" class="icon fa-github"><span class="label">Github</span></a></li>
+                        <li style="margin-left:1em"><a href="https://fr.linkedin.com/in/emilemathieu" target="_blank" class="icon  fa-linkedin-square"><span class="label">Linkedin</span></a></li>
+                    </ul>
+                </nav>
+                <!--<h1><strong><a href="index.html">Emile Mathieu</a></strong></h1>-->
+                <nav id="nav">
+                    <ul>
+                        <li><a href="index.html">Home</a></li>
+                        <!-- <li><a href="software.html">Software</a></li> -->
+                        <li><a href="works.html">Works</a></li>
+                        <li><a href="misc.html">Misc</a><li>
+                        <li><strong><a href="blog.html">Blog</a></strong><li>
+                        <li><a href="contact.html">Contact</a></li>
+                    </ul>
+                </nav>
+            </header>
+
+        <!-- Banner -->
+            <section id="banner">
+                <h2>Emile Mathieu</h2>
+            </section>
+
+
+        <!-- uncertainty -->
+            <section id="uncertainty" class="wrapper">
+                <div class="container blog" style="max-width: 800px;">
+
+                    <header class="major special">
+                        <h2>An efficient soft-margin kernel SVM implementation in Python</h2>
+                        <p>April 11th, 2017</p>
+                    </header>
+
+                    <p>
+                        <div class="social" style="text-align: center;">
+                            <span class="twitter">
+                                <a href="https://twitter.com/share" class="twitter-share-button"{count} data-url="http://emilemathieu.fr/blogpost1.html" data-size="default">Tweet</a>
+                            </span>
+                            <span class="google">
+                                <div class="g-plusone" data-href="http://emilemathieu.fr/blogpost1.html"></div>
+                            </span>
+                            <span class="Facebook">
+                                <div id="fb-root"></div>
+                                <div class="fb-share-button" data-href="http://emilemathieu.fr/blogpost1.html" data-layout="button_count" style="height: 21px; width: 85px" allowTransparency="true"></div>
+                            </span>
+                        </div>
+                    </p>
+
+                    
+                    <p style="display:none">
+                    $
+                    \newcommand{\R}{\mathbb{R}}
+                    \newcommand{\N}{\mathcal{N}}
+                    \newcommand{\svert}{~|~}
+                    \newcommand{\f}{\mathbf{f}}
+                    \newcommand{\x}{\mathbf{x}}
+                    \newcommand{\y}{\mathbf{y}}
+                    \newcommand{\z}{\mathbf{z}}
+                    \newcommand{\w}{\mathbf{w}}
+                    \newcommand{\W}{\mathbf{W}}
+                    \newcommand{\ba}{\mathbf{a}}
+                    \newcommand{\m}{\mathbf{m}}
+                    \newcommand{\ls}{\mathbf{l}}
+                    \newcommand{\bL}{\mathbf{L}}
+                    \newcommand{\X}{\mathbf{X}}
+                    \newcommand{\Y}{\mathbf{Y}}
+                    \newcommand{\p}{\mathbf{p}}
+                    \newcommand{\bepsilon}{\text{$\epsilon$}}
+                    \newcommand{\bgamma}{\text{$\gamma$}}
+                    \newcommand{\K}{\mathbf{K}}
+                    \newcommand{\diag}{\text{diag}}
+                    \newcommand{\argmin}{\text{argmin}}
+                    $
+                    </p>
+                    <p>In this short tutorial, I will present support vector machine (SVM) methods: its mathematical formulation along with an efficient implementation. Python's code can be found in full on <a href="https://github.com/emilemathieu/ImageClassificationChallenge/tree/master/code/mllib/svm" target="_blank" >my github page</a>. This tutorial rely heavily on <a href="https://www.csie.ntu.edu.tw/~cjlin/papers/bottou_lin.pdf" target="_blank" >Support Vector Machine Solvers</a> from Léon Bottou & Chih jen Lin, and <a href="http://www.csie.ntu.edu.tw/~cjlin/papers/libsvm.pdf" target="_blank" >LIBSVM: A Library for Support Vector Machines</a> from Chih-Chung Chang & Chih-Jen Lin. It naturally follows from this <a href="http://tullo.ch/articles/svm-py/" target="_blank" >blog post on SVM</a>.</p>
+
+                    <h3>Support Vector Machines</h3>
+
+                    <p>
+                    <div><span class="image captioned right" style="max-width:250px"><img src="Images/blog/optimal-hyperplane.png" alt=""><h5>Figure 1: <i>An optimal hyperplane.</i></h5></span></div>
+                    <a href="https://en.wikipedia.org/wiki/Support_vector_machine" target="_blank" >Support vector machines</a> are supervised learning models for classification or regression which are defined by supporting hyperplanes.
+                    SMVs are widely used in practice since they have been studied in depth and have good performance (for relatively small datasets).
+                    Given labeled training data, the algorithm outputs an optimal hyperplane which categorizes new examples.
+                    <!-- This hyperplane is optimal in the sense that if the data is separable, it is the one with the maximum margin as shown on the Figure 1. -->
+                    </p>
+
+                    <p>
+                    Separable: Hard Margin
+                    $$ \min _{\w, b} \mathcal{P}(\w, b) = \cfrac{1}{2} \w^2  $$
+                    $$ \text{subject to} \  \forall i \ \ y_i(\w^T \phi(\x_i)+b) \ge 1 $$
+                    </p>
+
+                    <script src="https://gist.github.com/emilemathieu/c8873e7a3f1aca7d123bea7bc9305627.js"></script>
+
+                    <p>
+                    Non-separable: Soft Margin
+                    Mathematically, this is defined as the following optimization problem.
+                     $$ \min _{\w, b, \mathbf{\xi}} \mathcal{P}(\w, b, \mathbf{\xi}) = \cfrac{1}{2} \w^2 + C \sum_{i=1}^n \xi_i $$
+                    $$ \text{subject to} \begin{cases} \forall i \quad y_i(\w^T \phi(\x_i)+b) \ge 1 - \xi_i \\ 
+                    \forall i \quad \xi_i \ge 0 \end{cases} $$
+
+                    The dual
+                    $$ \max _{\alpha} \mathcal{D}(\alpha) = \sum_{i=1}^n \alpha_i - \cfrac{1}{2} \sum_{i,j=1}^n y_i \alpha_i y_j \alpha_j \mathbf{K}(\x_i, \x_j) $$
+                    $$ \text{subject to} \begin{cases} \forall i \quad 0 \le \alpha_i \le C \\ 
+                    \sum_i y_i\alpha_i = 0 \end{cases} $$
+
+                    </p>
+                    <!-- <code data-gist-id="https://gist.github.com/emilemathieu/c8873e7a3f1aca7d123bea7bc9305627.js"></code> -->
+
+                    <h3>The Sequential Minimal Optimization (SMO) algorithm</h3>
+
+                    <script src="https://gist.github.com/emilemathieu/10f0b4a596c5ad571d8356f426b128a9.js"></script>
+
+                    <script src="https://gist.github.com/emilemathieu/026df8545b880e7814ddc081a55a0e70.js"></script>
+
+
+                    <h3>Demonstration</h3>
+
+
+
+                    <h2>Discussion</h2>
+                    <p>
+                        <div class="social"">
+                            <span class="twitter">
+                                <a href="https://twitter.com/share" class="twitter-share-button"{count} data-url="http://emilemathieu.fr/blogpost1.html" data-size="default">Tweet</a>
+                            </span>
+                            <span class="google">
+                                <div class="g-plusone" data-href="http://emilemathieu.fr/blogpost1.html"></div>
+                            </span>
+                            <span class="Facebook">
+                                <div id="fb-root"></div>
+                                <div class="fb-share-button" data-href="http://emilemathieu.fr/blogpost1.html" data-layout="button_count" style="height: 21px; width: 85px" allowTransparency="true"></div>
+                            </span>
+                        </div>
+                    </p>
+
+<!-- Share buttons UI -->
+<style type="text/css">
+/* This gets Google to fall into place */
+.social {
+    font-size: 1px;
+    text-align: right;
+}
+
+/* This gets Facebook to fall into place */
+.social iframe {
+    vertical-align: middle;
+}
+
+/* Set an optional width for your button wrappers */
+.social span {
+    display: inline-block;
+    /*width: 110px;*/
+}
+
+.social .twitter {
+    margin-right: 6px;
+}
+.social .twitter a {
+    margin-left: 5px;
+    margin-top: 2px;
+    color: #4e5665;
+    font-size: 11px;
+    line-height: 18px;
+}
+.social .google {
+    width: 83px;
+}
+.social .Facebook {
+    width: 85px;
+}
+.social .Facebook div span {
+    vertical-align: middle !important;
+}
+</style>
+<div id="fb-root"></div>
+<script>(function(d, s, id) {
+    var js, fjs = d.getElementsByTagName(s)[0];
+    if (d.getElementById(id)) return;
+    js = d.createElement(s); js.id = id;
+    js.src = "//connect.facebook.net/en_US/sdk.js#xfbml=1&version=v2.3";
+    fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
+
+<script src="https://apis.google.com/js/platform.js" async defer>
+  {lang: 'en-GB'}
+</script>
+
+<script>window.twttr = (function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0],
+    t = window.twttr || {};
+  if (d.getElementById(id)) return t;
+  js = d.createElement(s);
+  js.id = id;
+  js.src = "https://platform.twitter.com/widgets.js";
+  fjs.parentNode.insertBefore(js, fjs);
+  t._e = [];
+  t.ready = function(f) {
+    t._e.push(f);
+  };
+  return t;
+}(document, "script", "twitter-wjs"));</script>
+
+<div id="disqus_thread"></div>
+<script>
+
+/**
+*  RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
+*  LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables*/
+
+var disqus_config = function () {
+this.page.url = 'http://emilemathieu.fr';  // Replace PAGE_URL with your page's canonical URL variable
+this.page.identifier = 'svm'; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+};
+
+(function() { // DON'T EDIT BELOW THIS LINE
+var d = document, s = d.createElement('script');
+s.src = 'https://http-emilemathieu-fr.disqus.com/embed.js';
+s.setAttribute('data-timestamp', +new Date());
+(d.head || d.body).appendChild(s);
+})();
+</script>
+
+    </body>
+</html>
